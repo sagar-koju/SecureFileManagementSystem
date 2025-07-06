@@ -1,0 +1,60 @@
+﻿<h2>Receive a File via P2P</h2>
+
+<form id="downloadForm">
+    <input type="text" name="downloadUrl" id="downloadUrl" placeholder="Enter sender's URL" required style="width: 400px;" />
+    <button type="submit">Download File</button>
+</form>
+
+<div id="progressContainer" style="display:none; margin-top: 20px;">
+    <label>Progress:</label>
+    <div style="width:100%; background-color:#ddd;">
+        <div id="progressBar" style="width:0%; height:20px; background-color:#4caf50;"></div>
+    </div>
+    <p id="progressText">0%</p>
+</div>
+
+<script>
+    const form = document.getElementById("downloadForm");
+    form.addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        const url = document.getElementById("downloadUrl").value;
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            alert("Download failed.");
+            return;
+        }
+
+        const contentDisposition = response.headers.get("Content-Disposition");
+        const fileName = contentDisposition?.split("filename=")[1]?.replace(/"/g, "") || "received_file";
+
+        const contentLength = response.headers.get("Content-Length");
+        const total = contentLength ? parseInt(contentLength) : null;
+
+        const reader = response.body.getReader();
+        let received = 0;
+        let chunks = [];
+
+        document.getElementById("progressContainer").style.display = "block";
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            chunks.push(value);
+            received += value.length;
+
+            if (total) {
+                const percent = ((received / total) * 100).toFixed(2);
+                document.getElementById("progressBar").style.width = percent + "%";
+                document.getElementById("progressText").textContent = percent + "%";
+            }
+        }
+
+        const blob = new Blob(chunks);
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = fileName;
+        link.click();
+    });
+</script>

@@ -1,0 +1,61 @@
+﻿/* wwwroot/css/outbox.css */
+
+.outbox-title {
+    font-size: 2rem;
+    margin-bottom: 20px;
+    color: #333;
+    font-weight: bold;
+    text-align: left;
+}
+
+.outbox-table {
+    width: 90%;
+    margin: 0 auto 40px auto;
+    border-collapse: collapse;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    background-color: #fafafa;
+}
+
+    .outbox-table thead tr {
+        background-color: #007bff;
+        color: white;
+        font-weight: 600;
+    }
+
+    .outbox-table th,
+    .outbox-table td {
+        padding: 12px 15px;
+        text-align: left;
+        border: 1px solid #ddd;
+    }
+
+    .outbox-table tbody tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+
+    .outbox-table tbody tr:hover {
+        background-color: #e9f5ff;
+        cursor: pointer;
+    }
+
+.outbox-delete {
+    margin: 0;
+}
+
+.outbox-delete-button {
+    padding: 6px 12px;
+    background-color: red;
+    border: none;
+    color: white;
+    font-weight: 600;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.outbox-empty-message {
+    text-align: left;
+    font-style: italic;
+    color: #777;
+    margin-top: 30px;
+}

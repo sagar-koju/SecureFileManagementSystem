@@ -1,0 +1,62 @@
+﻿.send-title {
+    text-align: center;
+    font-size: 2rem;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.send-form {
+    max-width: 500px;
+    margin: 0 auto;
+    background: #f7f7f7;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.send-field {
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+}
+
+    .send-field label {
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .send-field input[type="text"],
+    .send-field input[type="file"] {
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+
+.send-button {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+    .send-button:hover {
+        background-color: #0056b3;
+    }
+
+.send-success {
+    color: green;
+    text-align: center;
+    margin-bottom: 15px;
+    font-weight: bold;
+}
+
+.send-error,
+.send-error-text {
+    color: red;
+    font-size: 0.9em;
+    text-align: center;
+}

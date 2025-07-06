@@ -1,0 +1,46 @@
+﻿@model List<SecureFileManagementSystem.Models.FileMetaData>
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Outbox";
+}
+
+<link rel="stylesheet" href="~/css/outbox.css" />
+
+<h2 class="outbox-title">Your Outbox</h2>
+
+@Html.AntiForgeryToken()
+
+@if (!Model.Any())
+{
+    <p class="outbox-empty-message">You have not sent any files yet.</p>
+}
+else
+{
+    <table class="outbox-table">
+        <thead>
+            <tr>
+                <th>File Name</th>
+                <th>Receiver</th>
+                <th>Sent At</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var file in Model)
+            {
+                <tr>
+                    <td>@file.FileName</td>
+                    <td>@file.Receiver</td>
+                    <td>@file.UploadedAt.ToLocalTime().ToString("g")</td>
+                    <td>
+                        <form asp-controller="Outbox" asp-action="Delete" method="post" class="outbox-delete">
+                            <input type="hidden" name="fileId" value="@file.Id" />
+                            <button type="submit" class="outbox-delete-button">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

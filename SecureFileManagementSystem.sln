@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36221.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SecureFileManagementSystem", "SecureFileManagementSystem\SecureFileManagementSystem.csproj", "{A17F5A3A-651E-4A52-9F52-DC728A21D67F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A17F5A3A-651E-4A52-9F52-DC728A21D67F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A17F5A3A-651E-4A52-9F52-DC728A21D67F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A17F5A3A-651E-4A52-9F52-DC728A21D67F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A17F5A3A-651E-4A52-9F52-DC728A21D67F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FCA20693-6EF6-47C3-9A6C-8EEC65F0FD04}
+	EndGlobalSection
+EndGlobal

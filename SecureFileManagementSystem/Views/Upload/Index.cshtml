@@ -1,0 +1,43 @@
+﻿@model SecureFileManagementSystem.Models.FileUploadViewModel
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Send File";
+}
+
+<link rel="stylesheet" href="~/css/upload.css" />
+
+<h2 class="send-title">Upload and Send Files</h2>
+
+@if (ViewBag.Message != null)
+{
+    <div class="send-success">@ViewBag.Message</div>
+}
+@if (ViewBag.Error != null)
+{
+    <div class="send-error">@ViewBag.Error</div>
+}
+
+<form asp-controller="Upload" asp-action="UploadFile" method="post" enctype="multipart/form-data" class="send-form">
+    <div class="send-field">
+        <label for="receiverUsername">Receiver Username:</label>
+        <input type="text" asp-for="ReceiverUsername" required />
+        <span asp-validation-for="ReceiverUsername" class="send-error-text"></span>
+    </div>
+
+    <div class="send-field">
+        <label for="files">Choose File:</label>
+        <input type="file" asp-for="Files" multiple required />
+        <span asp-validation-for="Files" class="send-error-text"></span>
+    </div>
+
+    <div>
+        <label>Transfer Mode:</label>
+        <select asp-for="UseP2P">
+            <option value="false">Server-Based</option>
+            <option value="true">Peer-to-Peer</option>
+        </select>
+    </div>
+
+    <button type="submit" class="send-button">Send Files</button>
+</form>

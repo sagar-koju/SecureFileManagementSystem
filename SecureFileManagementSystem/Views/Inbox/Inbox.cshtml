@@ -1,0 +1,37 @@
+﻿@model List<SecureFileManagementSystem.Models.FileMetaData>
+
+<h2 class="inbox-title">Your Inbox</h2>
+
+@if (!Model.Any())
+{
+    <p class="inbox-empty-message">No files received yet.</p>
+}
+else
+{
+    <table class="inbox-table">
+        <thead>
+            <tr class="inbox-table-header-row">
+                <th class="inbox-th">File Name</th>
+                <th class="inbox-th">Sender</th>
+                <th class="inbox-th">Received At</th>
+                <th class="inbox-th">Download</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var file in Model)
+            {
+                <tr class="inbox-table-row">
+                    <td class="inbox-td">@file.FileName</td>
+                    <td class="inbox-td">@file.Sender</td>
+                    <td class="inbox-td">@file.UploadedAt</td>
+                    <td class="inbox-td">
+                        <form asp-controller="Inbox" asp-action="Download" method="post" class="inbox-download-form">
+                            <input type="hidden" name="fileId" value="@file.FileName" />
+                            <button type="submit" class="inbox-download-button">Download</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

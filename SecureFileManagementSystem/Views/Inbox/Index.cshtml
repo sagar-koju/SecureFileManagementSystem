@@ -1,0 +1,88 @@
+﻿@model List<SecureFileManagementSystem.Models.FileInboxViewModel>
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Inbox";
+    string? receiver = ViewBag.ReceiverUsername as string;
+}
+
+@Html.AntiForgeryToken()
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Function to get antiforgery token value from the hidden input
+            function getRequestVerificationToken() {
+                var tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+                return tokenInput ? tokenInput.value : '';
+            }
+
+            // Attach click event to all delete links
+            document.querySelectorAll(".delete-file").forEach(function(el) {
+                el.addEventListener("click", function(e) {
+                    e.preventDefault();
+
+                    if (!confirm("Are you sure you want to delete this file?")) {
+                        return;
+                    }
+
+                    var fileId = this.getAttribute("data-fileid");
+                    var row = this.closest("tr");
+
+                    fetch(`/Inbox/Delete?fileId=${fileId}`, {
+                        method: "POST",
+                        headers: {
+                            'RequestVerificationToken': getRequestVerificationToken()
+                        }
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            row.remove();
+                        } else {
+                            alert("Failed to delete the file.");
+                        }
+                    })
+                    .catch(() => alert("An error occurred while deleting the file."));
+                });
+            });
+        });
+    </script>
+}
+
+
+<h2>Your Inbox @receiver</h2>
+
+@if (Model == null || Model.Count == 0)
+{
+    <p>No files received yet.</p>
+}
+else
+{
+    <table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse;">
+        <thead>
+            <tr>
+                <th>Sender</th>
+                <th>Original Filename</th>
+                <th>Received At</th>
+                <th>Action</th>
+                <th>Shared Method</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.SenderUsername</td>
+                    <td>@item.OriginalFileName</td>
+                    <td>@item.Timestamp.ToLocalTime().ToString("g")</td>
+                    <td>
+                        <a asp-controller="Inbox" asp-action="Download" asp-route-fileid="@item.Id">Download</a>
+                        <a href="#" class="delete-file" data-fileid="@item.Id">Delete</a>
+
+                    </td>
+                    <td></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

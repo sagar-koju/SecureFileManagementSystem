@@ -1,0 +1,48 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewData["Title"] - Secure File Sharing</title>
+    <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="stylesheet" href="~/css/navbar.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+</head>
+<body>
+    @{
+        var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+        var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+        bool showNavbar = !(currentController == "Account" && (currentAction == "Login" || currentAction == "Register"));
+    }
+
+    @if (showNavbar)
+    {
+        <nav class="navbar">
+            <div class="navbar-left">
+                <a href="/" class="navbar-brand">Secure File Management</a>
+            </div>
+            <div class="navbar-links">
+                <a href="/Inbox">Inbox</a>
+                <a href="/Upload">Upload</a>
+                <a href="/P2P">P2P</a>
+                <a href="/Outbox">Outbox</a>
+            </div>
+            <div class="navbar-user">
+                @{
+                    var username = Context.Session.GetString("Username");
+                    if (!string.IsNullOrEmpty(username))
+                    {
+                        <span>Hello, @username</span>
+                        <a href="/Account/Logout" class="logout-btn">Logout</a>
+                    }
+                }
+            </div>
+        </nav>
+    }
+
+    <div class="content">
+        @RenderBody()
+    </div>
+
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

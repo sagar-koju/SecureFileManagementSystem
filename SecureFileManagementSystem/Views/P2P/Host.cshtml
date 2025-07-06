@@ -1,0 +1,20 @@
+﻿@{
+    Layout = null;
+}
+<h2>Host a File for P2P Sharing</h2>
+
+<form enctype="multipart/form-data" method="post" asp-action="HostUploadFile">
+    <input type="file" name="file" required />
+    <button type="submit">Start Hosting</button>
+</form>
+
+@if (ViewBag.DownloadUrl != null)
+{
+    <p><strong>Send this URL to the receiver:</strong></p>
+    <p><a href="@ViewBag.DownloadUrl" target="_blank">@ViewBag.DownloadUrl</a></p>
+}
+
+@if (ViewBag.Message != null)
+{
+    <p>@ViewBag.Message</p>
+}
