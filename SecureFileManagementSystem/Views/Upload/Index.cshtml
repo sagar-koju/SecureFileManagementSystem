@@ -1,43 +1,49 @@
-﻿@model SecureFileManagementSystem.Models.FileUploadViewModel
-
+﻿@* File: Views/Upload/Index.cshtml *@
+@model SecureFileManagementSystem.Models.FileUploadViewModel
 @{
-    Layout = "~/Views/Shared/_Layout.cshtml";
-    ViewBag.Title = "Send File";
+    ViewData["Title"] = "Send File";
 }
-
 <link rel="stylesheet" href="~/css/upload.css" />
 
-<h2 class="send-title">Upload and Send Files</h2>
+<h2 class="send-title">Upload and Send File</h2>
 
 @if (ViewBag.Message != null)
 {
-    <div class="send-success">@ViewBag.Message</div>
+    <div class="alert alert-success">@ViewBag.Message</div>
 }
 @if (ViewBag.Error != null)
 {
-    <div class="send-error">@ViewBag.Error</div>
+    <div class="alert alert-danger">@ViewBag.Error</div>
 }
 
 <form asp-controller="Upload" asp-action="UploadFile" method="post" enctype="multipart/form-data" class="send-form">
+
+    @* This part is new. It will render a hidden input ONLY for P2P transfers. *@
+    @if (ViewBag.IsP2P)
+    {
+        <input type="hidden" asp-for="UseP2P" value="true" />
+        <div class="alert alert-info">You are starting a real-time Peer-to-Peer transfer.</div>
+    }
+
     <div class="send-field">
-        <label for="receiverUsername">Receiver Username:</label>
-        <input type="text" asp-for="ReceiverUsername" required />
-        <span asp-validation-for="ReceiverUsername" class="send-error-text"></span>
+        <label asp-for="ReceiverUsername">Receiver Username:</label>
+        @* If the username is pre-filled from the Peers page, make the input read-only *@
+        @if (ViewBag.IsP2P)
+        {
+            <input type="text" asp-for="ReceiverUsername" required readonly class="form-control-plaintext" />
+        }
+        else
+        {
+            <input type="text" asp-for="ReceiverUsername" required />
+        }
+        <span asp-validation-for="ReceiverUsername" class="text-danger"></span>
     </div>
 
     <div class="send-field">
-        <label for="files">Choose File:</label>
+        <label asp-for="Files">Choose File:</label>
         <input type="file" asp-for="Files" multiple required />
-        <span asp-validation-for="Files" class="send-error-text"></span>
+        <span asp-validation-for="Files" class="text-danger"></span>
     </div>
 
-    <div>
-        <label>Transfer Mode:</label>
-        <select asp-for="UseP2P">
-            <option value="false">Server-Based</option>
-            <option value="true">Peer-to-Peer</option>
-        </select>
-    </div>
-
-    <button type="submit" class="send-button">Send Files</button>
+    <button type="submit" class="send-button">Send File</button>
 </form>

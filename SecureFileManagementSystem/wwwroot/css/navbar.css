@@ -28,8 +28,10 @@
     font-weight: bold;
 }
 
-.navbar-links a {
-    margin-right: 15px;
+.navbar-links {
+    /* This allows dropdowns and links to align correctly */
+    display: flex;
+    align-items: center;
 }
 
 .navbar-user {
@@ -48,6 +50,61 @@
         background-color: #a30000;
     }
 
-.content {
-    padding: 20px;
+/* === DROPDOWN MENU STYLES === */
+
+/* The container for the dropdown. Position relative is crucial. */
+.navbar-dropdown {
+    position: relative;
+    display: inline-block;
 }
+
+/* Style for the main dropdown button to make it look like other navbar links */
+.dropdown-btn {
+    background-color: transparent;
+    color: white;
+    font-weight: 600;
+    padding: 0;
+    margin-right: 20px;
+    font-size: inherit;
+    font-family: inherit;
+    border: none;
+    cursor: pointer;
+}
+
+/* The little down-arrow icon */
+.caret {
+    font-size: 0.8em;
+    margin-left: 5px;
+}
+
+/* The dropdown content (hidden by default) */
+.dropdown-content {
+    display: none; /* This hides the dropdown initially */
+    position: absolute; /* Positions it relative to the navbar-dropdown container */
+    background-color: #f1f1f1;
+    min-width: 240px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1; /* Ensures it appears on top of other content */
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+    /* The links inside the dropdown */
+    .dropdown-content a {
+        color: black;
+        padding: 12px 16px;
+        text-decoration: none;
+        display: block;
+        text-align: left;
+        margin-right: 0;
+    }
+
+        /* Change color of dropdown links on hover */
+        .dropdown-content a:hover {
+            background-color: #ddd;
+        }
+
+    /* This is the class our JavaScript will toggle to show/hide the menu */
+    .dropdown-content.show {
+        display: block;
+    }

@@ -11,6 +11,7 @@
     @{
         var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
         var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+        // This logic correctly hides the navbar on the Login/Register pages.
         bool showNavbar = !(currentController == "Account" && (currentAction == "Login" || currentAction == "Register"));
     }
 
@@ -20,12 +21,26 @@
             <div class="navbar-left">
                 <a href="/" class="navbar-brand">Secure File Management</a>
             </div>
+
+            <!-- ======================= -->
+            <!--   NAVBAR LINKS UPDATED  -->
+            <!-- ======================= -->
             <div class="navbar-links">
                 <a href="/Inbox">Inbox</a>
-                <a href="/Upload">Upload</a>
-                <a href="/P2P">P2P</a>
+
+                <!-- START: New Dropdown Menu -->
+                <div class="navbar-dropdown">
+                    <button class="dropdown-btn">Share File <span class="caret">▼</span></button>
+                    <div class="dropdown-content">
+                        <a href="/Upload">Send to Server (Offline)</a>
+                        <a href="/Peers">Share with Peers (Real-Time)</a>
+                    </div>
+                </div>
+                <!-- END: New Dropdown Menu -->
+
                 <a href="/Outbox">Outbox</a>
             </div>
+
             <div class="navbar-user">
                 @{
                     var username = Context.Session.GetString("Username");
@@ -42,6 +57,69 @@
     <div class="content">
         @RenderBody()
     </div>
+
+    @if (!string.IsNullOrEmpty(Context.Session.GetString("Username")))
+    {
+        @Html.AntiForgeryToken()
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+
+        <script>
+            // --- HEARTBEAT SCRIPT (Unchanged) ---
+            function announcePresence() {
+                const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+                if (!tokenInput) return;
+                fetch('/Peers/Announce', {
+                    method: 'POST',
+                    headers: { 'RequestVerificationToken': tokenInput.value }
+                });
+            }
+            setInterval(announcePresence, 30000);
+            announcePresence();
+
+            // --- SIGNALR SCRIPT (Unchanged) ---
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl("/notificationHub")
+                .build();
+            connection.on("ReceiveFileNotification", (fromUser, fileName, downloadUrl) => {
+                const accept = confirm(`${fromUser} wants to send you the file "${fileName}".\n\nDo you want to download it?`);
+                if (accept) {
+                    const link = document.createElement('a');
+                    link.href = downloadUrl;
+                    link.setAttribute('download', fileName);
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+            });
+            connection.start().catch(err => console.error("SignalR Connection Error: ", err.toString()));
+
+            // ===================================
+            //   NEW SCRIPT FOR DROPDOWN MENU
+            // ===================================
+            document.addEventListener("DOMContentLoaded", function() {
+                const dropdownButtons = document.querySelectorAll('.dropdown-btn');
+
+                dropdownButtons.forEach(button => {
+                    button.addEventListener('click', function (event) {
+                        event.stopPropagation();
+                        const content = this.nextElementSibling;
+                        content.classList.toggle('show');
+                    });
+                });
+
+                window.onclick = function(event) {
+                    if (!event.target.matches('.dropdown-btn')) {
+                        const dropdowns = document.querySelectorAll('.dropdown-content');
+                        dropdowns.forEach(content => {
+                            if (content.classList.contains('show')) {
+                                content.classList.remove('show');
+                            }
+                        });
+                    }
+                }
+            });
+        </script>
+    }
 
     @RenderSection("Scripts", required: false)
 </body>

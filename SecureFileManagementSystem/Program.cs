@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SecureFileManagementSystem.Data; // Replace with your actual namespace
+using SecureFileManagementSystem.Hubs;
 using SecureFileManagementSystem.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,6 +21,9 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
+builder.Services.AddSingleton<PeerDirectoryService>();
+
+
 // Optional: Add authentication services if you have login/identity
 // builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
 //        .AddCookie(options => { /* Cookie options */ });
@@ -39,6 +43,9 @@ builder.Services.AddCors(options =>
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 
+// add SignalR services
+builder.Services.AddSignalR();
+
 var app = builder.Build();
 
 // Configure middleware pipeline
@@ -57,10 +64,13 @@ app.UseCors("AllowLocalNetwork"); // Allow cross-device requests in local networ
 
 app.UseSession();
 
-// Optional: Enable authentication
-// app.UseAuthentication();
-
 app.UseAuthorization();
+
+// Enable authentication
+app.UseAuthentication();
+
+// This maps the URL "/notificationHub" to your hub
+app.MapHub<NotificationHub>("/notificationHub");
 
 // Routing setup
 app.MapControllerRoute(

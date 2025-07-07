@@ -1,0 +1,32 @@
+﻿@* File: Views/Peers/Index.cshtml *@
+@model List<SecureFileManagementSystem.Services.PeerInfo>
+
+@{
+    ViewData["Title"] = "Online Peers";
+}
+
+<h2>Online Peers</h2>
+<p>Select a user to share a file with.</p>
+
+@if (!Model.Any())
+{
+    <p>No other users are currently online. Check back soon!</p>
+}
+else
+{
+    <div class="list-group">
+        @foreach (var peer in Model)
+        {
+            <!-- This link will take the user to the upload form, pre-filling the receiver's name -->
+            <a asp-controller="Upload" asp-action="Index"
+               asp-route-receiver="@peer.Username"
+               asp-route-isP2P="true"
+               class="list-group-item list-group-item-action">
+                Share a file with <strong>@peer.Username</strong> (Real-Time)
+            </a>
+        }
+    </div>
+}
+
+<hr />
+<button onclick="location.reload()" class="btn btn-info">Refresh List</button>
