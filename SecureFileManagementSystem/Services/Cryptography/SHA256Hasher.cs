@@ -30,15 +30,22 @@ namespace SecureFileManagement.Cryptography
         {
             // Pre-processing: Pad the input
             byte[] inputBytes = Encoding.UTF8.GetBytes(input);
-            int bitLength = inputBytes.Length * 8;
-            int paddedLength = ((bitLength + 512 - 448 - 1) / 512) * 512 + 448;
-            byte[] padded = new byte[(paddedLength + 64) / 8];
+            long originalBitLength = inputBytes.Length * 8;
+            int currentLength = inputBytes.Length;
+            int paddedLength = currentLength + 1;
+
+            while (paddedLength % 64 != 56)
+            {
+                paddedLength++;
+            }
+
+            byte[] padded = new byte[paddedLength + 8];
 
             Array.Copy(inputBytes, padded, inputBytes.Length);
             padded[inputBytes.Length] = 0x80; // Append '1' bit
 
             // Append original length (big-endian)
-            byte[] lengthBytes = BitConverter.GetBytes((ulong)bitLength);
+            byte[] lengthBytes = BitConverter.GetBytes((ulong)originalBitLength);
             if (BitConverter.IsLittleEndian)
                 Array.Reverse(lengthBytes);
             Array.Copy(lengthBytes, 0, padded, padded.Length - 8, 8);

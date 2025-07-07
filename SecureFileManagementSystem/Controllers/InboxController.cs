@@ -1,11 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
+using SecureFileManagement.Cryptography;
 using SecureFileManagementSystem.Data;
 using SecureFileManagementSystem.Models;
 using SecureFileManagementSystem.Services;
 using System;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Security.Cryptography;
 
 namespace SecureFileManagementSystem.Controllers
@@ -67,9 +69,16 @@ namespace SecureFileManagementSystem.Controllers
 
             try
             {
+                var keyParts = user.PrivateKey.Split('|');
+                var n = BigInteger.Parse(keyParts[0]);
+                var d = BigInteger.Parse(keyParts[1]);
+
                 // Decrypt AES key using user's private RSA key
-                byte[] encryptedAesKeyBytes = Convert.FromBase64String(fileMeta.EncryptedAESKey);
-                byte[] aesKey = RSAService.DecryptAESKeyWithRSA(encryptedAesKeyBytes, user.PrivateKey);
+                string encryptedAesKey = fileMeta.EncryptedAESKey;
+                string decryptedAesKeyString = RSACrypto.Decrypt(encryptedAesKey, n, d);
+
+                // Convert the decrypted Base64 string back to byte
+                byte[] aesKey = Convert.FromBase64String(decryptedAesKeyString);
 
                 // Full path to encrypted file in wwwroot/uploads
                 string encryptedFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", fileMeta.FilePath);

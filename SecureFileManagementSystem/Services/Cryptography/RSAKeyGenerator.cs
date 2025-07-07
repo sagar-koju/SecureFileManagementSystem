@@ -11,7 +11,7 @@ namespace SecureFileManagement.Cryptography
     public static class RSAKeyGenerator
     {
         // Generate RSA key pair (public + private)
-        public static (BigInteger n, BigInteger e, BigInteger d) GenerateKeys(int bitLength = 512)
+        public static (BigInteger n, BigInteger e, BigInteger d) GenerateKeys(int bitLength = 1024)
         {
             // Step 1: Choose two large primes p and q
             BigInteger p = GenerateLargePrime(bitLength / 2);

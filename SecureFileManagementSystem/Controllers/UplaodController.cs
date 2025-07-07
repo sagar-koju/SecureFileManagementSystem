@@ -3,11 +3,13 @@ using Microsoft.AspNetCore.Http;
 using SecureFileManagementSystem.Models;
 using SecureFileManagementSystem.Services;
 using SecureFileManagementSystem.Data;
-using System.Security.Cryptography;
-using System.IO;
 using System;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+// Add these two using statements for your manual crypto
+using System.Numerics;
+using SecureFileManagement.Cryptography;
 
 namespace SecureFileManagementSystem.Controllers
 {
@@ -26,6 +28,9 @@ namespace SecureFileManagementSystem.Controllers
             if (string.IsNullOrEmpty(HttpContext.Session.GetString("Username")))
                 return RedirectToAction("Login", "Account");
 
+            // You are missing a View named "HostAndShare". Let's create it.
+            // If you don't have this view, the P2P part will crash after upload.
+            // Create a file at Views/Upload/HostAndShare.cshtml
             return View();
         }
 
@@ -49,9 +54,9 @@ namespace SecureFileManagementSystem.Controllers
                 return View("Index", model);
             }
 
+            // ================== P2P LOGIC ==================
             if (model.UseP2P)
             {
-                // Only allow one file in P2P mode
                 var formFile = model.Files.FirstOrDefault();
                 if (formFile == null || formFile.Length == 0)
                 {
@@ -66,32 +71,37 @@ namespace SecureFileManagementSystem.Controllers
                     fileBytes = ms.ToArray();
                 }
 
-                // Generate AES key and encrypt file bytes
+                // 1. Generate AES key (this helper is fine)
                 byte[] aesKey = EncryptionService.GenerateAesKey();
+
+                // 2. Encrypt the file content with the AES key
                 byte[] iv;
                 byte[] encryptedBytes = EncryptionService.EncryptBytes(fileBytes, aesKey, out iv);
-
-                // Prepend IV to encrypted bytes for streaming
                 byte[] encryptedBytesWithIv = iv.Concat(encryptedBytes).ToArray();
 
-                // Start P2P host streaming the encrypted bytes with prepended IV
+                // 3. Encrypt the AES key using your manual RSACrypto
+                var keyParts = receiverUser.PublicKey.Split('|');
+                var n = BigInteger.Parse(keyParts[0]);
+                var e = BigInteger.Parse(keyParts[1]);
+
+                // Convert AES key to a string format that your manual RSA can handle
+                string aesKeyAsBase64 = Convert.ToBase64String(aesKey);
+                // The single source of the encrypted AES key
+                string finalEncryptedAesKey = RSACrypto.Encrypt(aesKeyAsBase64, n, e);
+
+                // 4. Start P2P host with the encrypted file
                 var p2pHost = new P2PStreamHost(encryptedBytesWithIv, formFile.FileName);
                 p2pHost.Start();
-
                 string downloadUrl = p2pHost.GetDownloadUrl();
 
-                // Encrypt AES key with receiver's RSA public key
-                byte[] encryptedKeyBytes = RSAService.EncryptAESKeyWithRSA(aesKey, receiverUser.PublicKey);
-                string encryptedAesKey = Convert.ToBase64String(encryptedKeyBytes);
-
-                // Save metadata without physical file path since no disk save
+                // 5. Save metadata to DB
                 var fileMetaData = new FileMetaData
                 {
                     FileName = formFile.FileName,
                     Sender = sender,
                     Receiver = model.ReceiverUsername!,
-                    EncryptedAESKey = encryptedAesKey,
-                    FilePath = null,
+                    EncryptedAESKey = finalEncryptedAesKey, // Use the key from your manual RSA
+                    FilePath = null, // No file path for P2P
                     UploadedAt = DateTime.UtcNow
                 };
 
@@ -99,10 +109,11 @@ namespace SecureFileManagementSystem.Controllers
                 await _dbContext.SaveChangesAsync();
 
                 ViewBag.P2PDownloadUrl = downloadUrl;
-                return View("HostAndShare"); // Create this view to show QR + link
+                ViewBag.FileName = formFile.FileName;
+                return View("HostAndShare"); // Ensure you have a view named HostAndShare.cshtml
             }
 
-            // Server-based encryption and saving
+            // ================== SERVER-BASED LOGIC ==================
             string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
             Directory.CreateDirectory(uploadsFolder);
 
@@ -117,23 +128,32 @@ namespace SecureFileManagementSystem.Controllers
                         fileBytes = ms.ToArray();
                     }
 
+                    // 1. Generate AES key
                     byte[] aesKey = EncryptionService.GenerateAesKey();
 
+                    // 2. Encrypt the file content with the AES key and save to disk
                     string fileName = Path.GetFileName(formFile.FileName);
                     string storedFileName = Guid.NewGuid().ToString() + ".encrypted";
                     string encryptedFilePath = Path.Combine(uploadsFolder, storedFileName);
                     EncryptionService.EncryptFileFromBytes(fileBytes, encryptedFilePath, aesKey, out byte[] iv);
 
-                    byte[] encryptedKeyBytes = RSAService.EncryptAESKeyWithRSA(aesKey, receiverUser.PublicKey);
-                    string encryptedAesKey = Convert.ToBase64String(encryptedKeyBytes);
+                    // 3. Encrypt the AES key using your manual RSACrypto
+                    var keyParts = receiverUser.PublicKey.Split('|');
+                    var n = BigInteger.Parse(keyParts[0]);
+                    var e = BigInteger.Parse(keyParts[1]);
 
+                    string aesKeyAsBase64 = Convert.ToBase64String(aesKey);
+                    // The single source of the encrypted AES key
+                    string finalEncryptedAesKey = RSACrypto.Encrypt(aesKeyAsBase64, n, e);
+
+                    // 4. Save metadata to DB
                     var fileMetaData = new FileMetaData
                     {
                         FileName = fileName,
                         Sender = sender,
                         Receiver = model.ReceiverUsername!,
-                        EncryptedAESKey = encryptedAesKey,
-                        FilePath = storedFileName,
+                        EncryptedAESKey = finalEncryptedAesKey, // Use the key from your manual RSA
+                        FilePath = storedFileName, // Use the relative path for server storage
                         UploadedAt = DateTime.UtcNow
                     };
 

@@ -1,9 +1,10 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using SecureFileManagement.Cryptography;
 using SecureFileManagementSystem.Data;
 using SecureFileManagementSystem.Models;
-using SecureFileManagement.Cryptography;
 using System.Linq;
+using System.Security.Cryptography;
 
 namespace SecureFileManagementSystem.Controllers
 {
@@ -33,9 +34,24 @@ namespace SecureFileManagementSystem.Controllers
                 ModelState.AddModelError("", "Username already exists.");
                 return View(model);
             }
+            // Generate a random salt
+            byte[] saltBytes = new byte[16];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(saltBytes);
+            }
+            string salt = Convert.ToBase64String(saltBytes);
 
-            string hashedPassword = SHA256Hasher.ComputeHash(model.Password);
-            var (n, e, d) = RSAKeyGenerator.GenerateKeys();
+            // Prepend the salt to the password and then hash
+            string saltedPassword = salt + model.Password;
+
+
+            string hash = SHA256Hasher.ComputeHash(saltedPassword);
+
+            // Store the salt and hash together
+            string storedPasswordHash = $"{salt}:{hash}";
+
+            var (n, e, d) = RSAKeyGenerator.GenerateKeys(1024);
 
             string publicKey = $"{n}|{e}";
             string privateKey = $"{n}|{d}";
@@ -43,7 +59,7 @@ namespace SecureFileManagementSystem.Controllers
             var userRecord = new UserRecord
             {
                 Username = model.Username,
-                PasswordHash = hashedPassword,
+                PasswordHash = storedPasswordHash,
                 PublicKey = publicKey,
                 PrivateKey = privateKey
             };
@@ -67,7 +83,28 @@ namespace SecureFileManagementSystem.Controllers
         {
             var userRecord = _dbContext.UserRecords.FirstOrDefault(u => u.Username == username);
 
-            if (userRecord == null || SHA256Hasher.ComputeHash(password) != userRecord.PasswordHash)
+            if (userRecord == null)
+            {
+                ViewBag.Error = "Invalid username or password.";
+                return View();
+            }
+            // Split the stored string to get the salt and the original hash
+            var passwordParts = userRecord.PasswordHash.Split(':');
+            if (passwordParts.Length != 2)
+            {
+                // Handle error for malformed hash in DB
+                ViewBag.Error = "Invalid credential format.";
+                return View();
+            }
+            string salt = passwordParts[0];
+            string storedHash = passwordParts[1];
+
+            // 2. Apply the same salt to the login password attempt and hash it
+            string saltedPasswordAttempt = salt + password;
+            string newHash = SHA256Hasher.ComputeHash(saltedPasswordAttempt);
+
+            // 3. Compare the new hash with the stored hash
+            if (newHash != storedHash)
             {
                 ViewBag.Error = "Invalid username or password.";
                 return View();
